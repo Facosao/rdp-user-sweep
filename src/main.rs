@@ -1,27 +1,29 @@
 use std::{
-    io::{prelude::*, BufReader},
-    net::{TcpListener, TcpStream},
+    net::{TcpStream, SocketAddr, SocketAddrV4, AddrParseError}, time::Duration, str::FromStr, thread::sleep,
 };
 
-fn main() {
-    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+fn ping(addr: &str) -> Result<(), AddrParseError> {
+    //let addr = "172.31.88.18:3389";
 
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
+    for _ in 0..4 {
+        let stream = TcpStream::connect_timeout(
+            &SocketAddr::from(SocketAddrV4::from_str(addr)?), 
+            Duration::from_secs(3)
+        );
+        
+        match stream {
+            Ok(_) => println!("Response from {}", addr),
+            Err(_) => println!("Connection timeout."),
+        }
 
-        handle_connection(stream);
+        sleep(Duration::from_secs(1));
     }
+
+
+    Ok(())
 }
 
-fn handle_connection(mut stream: TcpStream) {
-    let buf_reader = BufReader::new(&mut stream);
-    let _http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
-
-    let response = "HTTP/1.1 200 OK\r\n\r\n";
-
-    stream.write_all(response.as_bytes()).unwrap();
+fn main() {
+    let args: Vec<_> = std::env::args().collect();
+    let _ = ping(&args[1]);
 }
