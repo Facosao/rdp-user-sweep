@@ -9,10 +9,10 @@ use std::{
 fn ping(addr: &str) -> Result<(), AddrParseError> {
     let addr_port = format!("{}:3389", addr); // RDP port number
     
-    for _ in 0..4 {
+    for _ in 0..2 {
         let stream = TcpStream::connect_timeout(
             &SocketAddr::from(SocketAddrV4::from_str(&addr_port)?), 
-            Duration::from_secs(3)
+            Duration::from_secs(1)
         );
         
         match stream {
