@@ -3,7 +3,7 @@ use std::{
     time::Duration,
     str::FromStr,
     thread::sleep,
-    process::{Command, Output},
+    process::Command,
 };
 
 fn ping(addr: &str) -> Result<(), AddrParseError> {
@@ -26,22 +26,38 @@ fn ping(addr: &str) -> Result<(), AddrParseError> {
     Ok(())
 }
 
-fn query(addr: &str) -> Result<Output, std::io::Error> {
+fn query(addr: &str) -> Result<String, std::io::Error> {
     let query = Command::new(r"C:\Windows\System32\quser.exe")
         .arg(format!("/server:{}", addr))
         .output()?;
 
-    println!("status: {}", query.status);
-    println!("stdout: {}", String::from_utf8_lossy(&query.stdout));
-    println!("stderr: {}", String::from_utf8_lossy(&query.stderr));
+    Ok(String::from_utf8_lossy(&query.stdout).to_string())
+}
 
-    Ok(query)
+fn parse(raw_user: String) -> Vec<String> {
+    let splices = raw_user.split_whitespace();
+    let mut users: Vec<String> = Vec::new(); 
+
+    for splice in splices {
+        if splice.contains(".") {
+            users.push(splice.to_string());
+        }
+    }
+
+    users
 }
 
 fn main() {
     let args: Vec<_> = std::env::args().collect();
     let _ = ping(&args[1]);
-    let _ = query(&args[1]);
+    let raw_user = query(&args[1]);
+
+    if raw_user.is_ok() {
+        let response = parse(raw_user.unwrap());
+        for item in response {
+            println!("user: {}", item);
+        }
+    }
 
     /*
     println!(" USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME");
