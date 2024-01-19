@@ -42,4 +42,10 @@ fn main() {
     let args: Vec<_> = std::env::args().collect();
     let _ = ping(&args[1]);
     let _ = query(&args[1]);
+
+    /*
+    println!(" USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME");
+    println!(" nome.sobrenome                            1  Disco        1:06  09/01/2024 08:22");
+    println!(" fulano.ciclano        console             2  Ativo        1:06  09/01/2024 13:24");
+     */
 }
