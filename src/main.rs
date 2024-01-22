@@ -1,5 +1,5 @@
 use std::{
-    net::{TcpStream, SocketAddr, SocketAddrV4, AddrParseError},
+    net::{TcpStream, SocketAddr, SocketAddrV4, Ipv4Addr, AddrParseError},
     time::Duration,
     str::FromStr,
     thread::sleep,
@@ -45,6 +45,23 @@ fn parse(raw_user: String) -> Vec<String> {
     }
 
     users
+}
+
+fn is_network_address(address: Ipv4Addr, mask: Ipv4Addr) -> bool {
+    let addr_octets = address.octets();
+    let mask_octets = mask.octets();
+
+    for i in 0..addr_octets.len() {
+        if (addr_octets[i] | mask_octets[i]) != mask_octets[i] {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+fn gen_hosts(address: Ipv4Addr, mask: Ipv4Addr) -> Vec<Ipv4Addr> {
+    
 }
 
 fn main() {
