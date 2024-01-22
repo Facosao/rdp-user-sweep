@@ -60,8 +60,32 @@ fn is_network_address(address: Ipv4Addr, mask: Ipv4Addr) -> bool {
     return true;
 }
 
+fn is_broadcast_address(address: Ipv4Addr, mask: Ipv4Addr) -> bool {
+    let addr_octets = address.octets();
+    let mask_octets = mask.octets();
+
+    for i in 0..addr_octets.len() {
+        if (addr_octets[i] | mask_octets[i]) != 255 {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 fn gen_hosts(address: Ipv4Addr, mask: Ipv4Addr) -> Vec<Ipv4Addr> {
-    
+    let addr_octets = address.octets();
+    let mask_octets = mask.octets();
+    let mut hosts: Vec<Ipv4Addr> = Vec::new();
+
+    for i in 3..=0 {
+        let mut j = 0;
+        while addr_octets[i] + j <= 255 {
+                       
+        }
+    }
+
+    hosts
 }
 
 fn main() {
