@@ -1,6 +1,6 @@
 use std::{net::Ipv4Addr, process::Command};
 
-pub fn query(addr: Ipv4Addr) -> Option<Vec<String>> {
+pub fn query_user(addr: Ipv4Addr) -> Option<Vec<String>> {
     let query = Command::new(r"C:\Windows\System32\quser.exe")
         .arg(format!("/server:{}", addr))
         .output();

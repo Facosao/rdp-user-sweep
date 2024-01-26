@@ -5,21 +5,21 @@ pub mod ping;
 pub mod query;
 pub mod template;
 pub mod args;
+pub mod subnet;
 
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let subnets = args::parse_args();
 
-    for subnet in subnets {
-        println!("subnet: {:?}", subnet);
+    for subnet in subnets {       
         let hosts = ip::gen_hosts(subnet.0, subnet.1);
         let mut table: Vec<(Ipv4Addr, Vec<String>)> = Vec::new();
         for host in hosts {
             
-
             println!("host: {}", host);
             if let Ok(_) = ping::ping(host) {
-                let query_result = query::query(host);
+                let query_result = query::query_user(host);
                 match query_result {
                     Some(users) => {
                         table.push((host, users.clone()));
@@ -33,7 +33,9 @@ fn main() {
         }
 
         println!("--- table for subnet ---");
-        println!("{:?}", table);
+        for value in table {
+            println!("host: {}, users: {:?}", value.0, value.1);
+        }
     }
 
     /*
