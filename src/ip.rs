@@ -2,7 +2,7 @@ use std::net::Ipv4Addr;
 
 pub trait Ipv4u32 {
     fn from_u32(address: u32) -> Ipv4Addr;
-    fn to_u32(address: Ipv4Addr) -> u32;
+    fn to_u32(self) -> u32;
 }
 
 impl Ipv4u32 for Ipv4Addr {
@@ -16,8 +16,8 @@ impl Ipv4u32 for Ipv4Addr {
         Ipv4Addr::new(octets[0], octets[1], octets[2], octets[3])
     }
 
-    fn to_u32(address: Ipv4Addr) -> u32 {
-        let addr_octets: [u8; 4] = address.octets();
+    fn to_u32(self) -> u32 {
+        let addr_octets: [u8; 4] = self.octets();
         let mut addr32: u32;
 
         addr32 = (addr_octets[0] as u32).wrapping_shl(24);
@@ -45,19 +45,19 @@ fn _is_network_address(address: Ipv4Addr, mask: Ipv4Addr) -> bool {
 pub fn gen_hosts(address: Ipv4Addr, mask: Ipv4Addr) -> Vec<Ipv4Addr> {    
     let mut hosts: Vec<Ipv4Addr> = Vec::new();
 
-    if Ipv4Addr::to_u32(mask) == u32::MAX { // /32 mask
+    if mask.to_u32() == u32::MAX { // /32 mask
         hosts.push(address);
         return hosts;
     }
 
-    if Ipv4Addr::to_u32(mask) == (u32::MAX) - 1 { // /31 mask (RFC 3021)
+    if mask.to_u32() == (u32::MAX) - 1 { // /31 mask (RFC 3021)
         hosts.push(address);
-        hosts.push(Ipv4Addr::from_u32(Ipv4Addr::to_u32(address) + 1));
+        hosts.push(Ipv4Addr::from_u32(address.to_u32() + 1));
         return hosts;
     }
 
-    let mut addr32 = Ipv4Addr::to_u32(address);
-    let mask32 = Ipv4Addr::to_u32(mask);
+    let mut addr32 = address.to_u32();
+    let mask32 = mask.to_u32();
 
     addr32 += 1; // Skip network address
 

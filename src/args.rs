@@ -1,10 +1,11 @@
 use std::{net::Ipv4Addr, str::FromStr};
 use crate::ip::Ipv4u32;
+use crate::subnet::Subnet;
 
-pub fn parse_args() -> Vec<(Ipv4Addr, Ipv4Addr)> {
+pub fn parse_args() -> Vec<Subnet> {
     let args = std::env::args().into_iter();
     let arg = args.last().expect("No argument passed to the program!");
-    let mut subnets: Vec<(Ipv4Addr, Ipv4Addr)> = Vec::new();
+    let mut subnets: Vec<Subnet> = Vec::new();
 
     let file = std::fs::read_to_string(&arg);
     match file {
@@ -31,7 +32,7 @@ pub fn parse_args() -> Vec<(Ipv4Addr, Ipv4Addr)> {
 }
 
 // Parse an IPv4 subnet in the format 123.123.123.123/12
-fn parse_subnet(subnet: &str) -> Result<(Ipv4Addr, Ipv4Addr), Box<dyn std::error::Error>> {
+fn parse_subnet(subnet: &str) -> Result<Subnet, Box<dyn std::error::Error>> {
     let strings: Vec<&str> = subnet.split('/').collect();
     let addr_str: &&str = strings.first().ok_or("_")?;
     let mask_cidr_str: &&str = strings.last().ok_or("_")?;
@@ -57,5 +58,5 @@ fn parse_subnet(subnet: &str) -> Result<(Ipv4Addr, Ipv4Addr), Box<dyn std::error
 
     //println!("addr = {}", addr);
     //println!("mask = {}", mask);
-    Ok((addr, mask))
+    Ok(Subnet{ip: addr, mask})
 }

@@ -12,17 +12,40 @@ pub struct QueryResult {
     pub users: Vec<String>
 }
 
-pub async fn query_subnet(subnet: Subnet) -> Vec<JoinHandle<Option<QueryResult>>> {
+pub async fn query_subnet(subnet: Subnet) -> Vec<QueryResult> {
     let hosts = crate::ip::gen_hosts(subnet.ip, subnet.mask);
-    let mut results: Vec<JoinHandle<Option<QueryResult>>> = Vec::new();
+
+    let mut handles: Vec<JoinHandle<Option<QueryResult>>> = Vec::new();
+    let mut results: Vec<Option<QueryResult>> = Vec::new();
+    let mut found: Vec<QueryResult> = Vec::new();
 
     for host in hosts {
-        results.push(tokio::task::spawn_blocking(move || {
+        handles.push(tokio::task::spawn_blocking(move || {
             query_host(host)
         }));
     }
 
-    return results;
+    return found;
+
+    let computed_length = handles.len();
+
+    while computed_length != results.len() {
+        for i in 0..computed_length {
+            if handles[i].is_finished() {
+                if let Ok(handle_ok) = handles[i].await {
+                    results.push(handle_ok)
+                }
+            }
+        }
+    }
+
+    for result in results {
+        if let Some(value) = result {
+            found.push(value)
+        }
+    }
+
+    return found;
 }
 
 pub fn query_host(ip: Ipv4Addr) -> Option<QueryResult> {

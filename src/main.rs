@@ -1,4 +1,5 @@
-use std::net::Ipv4Addr;
+//use std::{future::IntoFuture, net::Ipv4Addr};
+//use tokio::task::JoinHandle;
 
 pub mod ip;
 pub mod ping;
@@ -7,11 +8,29 @@ pub mod template;
 pub mod args;
 pub mod subnet;
 
+//use crate::subnet::QueryResult;
+
 
 #[tokio::main]
 async fn main() {
     let subnets = args::parse_args();
+    //let tasks: Vec<JoinHandle<Vec<QueryResult>>> = Vec::new();
 
+    for subnet in subnets {
+        //let hosts = tokio::spawn(async move {
+        //    crate::subnet::query_subnet(subnet)
+        //});
+
+        let hosts = crate::subnet::query_subnet(subnet);
+        let result = hosts.await;
+
+        println!("Subnet: {}", subnet.ip);
+        for host in result {
+            println!("ip: {}, user: {:?}", host.ip, host.users);
+        }       
+    }
+
+    /*
     for subnet in subnets {       
         let hosts = ip::gen_hosts(subnet.0, subnet.1);
         let mut table: Vec<(Ipv4Addr, Vec<String>)> = Vec::new();
@@ -37,6 +56,7 @@ async fn main() {
             println!("host: {}, users: {:?}", value.0, value.1);
         }
     }
+    */
 
     /*
 
