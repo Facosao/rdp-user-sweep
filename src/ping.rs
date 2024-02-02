@@ -5,6 +5,7 @@ use std::{
 };
 
 pub fn ping(ip: Ipv4Addr) -> Result<(), ()> {
+    //println!("PING {}", ip);
     let socket = SocketAddrV4::new(ip, 3389); // RDP port number
     let mut attempts = 2;
 

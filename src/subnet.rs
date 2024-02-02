@@ -1,5 +1,8 @@
 use std::net::Ipv4Addr;
-use tokio::task::JoinHandle;
+use std::sync::mpsc;
+use std::thread;
+
+use crate::ip::Ipv4u32;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Subnet {
@@ -7,45 +10,55 @@ pub struct Subnet {
     pub mask: Ipv4Addr
 }
 
+impl std::fmt::Display for Subnet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mask32 = self.mask.to_u32();
+
+        let mut detector: u32 = 1 << 31;
+        let mut cidr_count: u32 = 0;
+
+        while (detector | mask32) == mask32 {
+            cidr_count += 1;
+            detector >>= 1;
+        }
+        
+        write!(f, "{}/{}", self.ip, cidr_count)
+    }
+}
+
 pub struct QueryResult {
     pub ip: Ipv4Addr,
     pub users: Vec<String>
 }
 
-pub async fn query_subnet(subnet: Subnet) -> Vec<QueryResult> {
-    let hosts = crate::ip::gen_hosts(subnet.ip, subnet.mask);
+type PossibleHost = Option<QueryResult>;
 
-    let mut handles: Vec<JoinHandle<Option<QueryResult>>> = Vec::new();
-    let mut results: Vec<Option<QueryResult>> = Vec::new();
-    let mut found: Vec<QueryResult> = Vec::new();
+pub fn query_subnet(subnet: Subnet) -> Vec<QueryResult> {
+    let hosts = crate::ip::gen_hosts(subnet.ip, subnet.mask);
+    let mut results: Vec<QueryResult> = Vec::new();
+    let (tx, rx) = mpsc::channel::<PossibleHost>();
+
 
     for host in hosts {
-        handles.push(tokio::task::spawn_blocking(move || {
-            query_host(host)
-        }));
-    }
-
-    return found;
-
-    let computed_length = handles.len();
-
-    while computed_length != results.len() {
-        for i in 0..computed_length {
-            if handles[i].is_finished() {
-                if let Ok(handle_ok) = handles[i].await {
-                    results.push(handle_ok)
-                }
+        let tx_clone = tx.clone();
+        thread::spawn(move || {
+            //println!("Attempting to create thread for host {}", host);
+            if let Err(_) = tx_clone.send(query_host(host)) {
+                println!("Failed to create thread for host {}!", host);
             }
+        });
+    }
+
+    drop(tx);
+    //println!("Finished creating threads for subnet {}", subnet);
+
+    for receiver in rx {
+        if let Some(host) = receiver {
+            results.push(host);
         }
     }
 
-    for result in results {
-        if let Some(value) = result {
-            found.push(value)
-        }
-    }
-
-    return found;
+    results
 }
 
 pub fn query_host(ip: Ipv4Addr) -> Option<QueryResult> {

@@ -50,7 +50,7 @@ pub fn gen_hosts(address: Ipv4Addr, mask: Ipv4Addr) -> Vec<Ipv4Addr> {
         return hosts;
     }
 
-    if mask.to_u32() == (u32::MAX) - 1 { // /31 mask (RFC 3021)
+    if mask.to_u32() == (u32::MAX - 1) { // /31 mask (RFC 3021)
         hosts.push(address);
         hosts.push(Ipv4Addr::from_u32(address.to_u32() + 1));
         return hosts;

@@ -1,5 +1,8 @@
 //use std::{future::IntoFuture, net::Ipv4Addr};
 //use tokio::task::JoinHandle;
+use std::sync::mpsc;
+
+use subnet::QueryResult;
 
 pub mod ip;
 pub mod ping;
@@ -10,67 +13,34 @@ pub mod subnet;
 
 //use crate::subnet::QueryResult;
 
-
-#[tokio::main]
-async fn main() {
+fn main() {
     let subnets = args::parse_args();
-    //let tasks: Vec<JoinHandle<Vec<QueryResult>>> = Vec::new();
+    let (tx, rx) = mpsc::channel::<Vec<QueryResult>>();
 
     for subnet in subnets {
-        //let hosts = tokio::spawn(async move {
-        //    crate::subnet::query_subnet(subnet)
-        //});
-
-        let hosts = crate::subnet::query_subnet(subnet);
-        let result = hosts.await;
-
-        println!("Subnet: {}", subnet.ip);
-        for host in result {
-            println!("ip: {}, user: {:?}", host.ip, host.users);
-        }       
-    }
-
-    /*
-    for subnet in subnets {       
-        let hosts = ip::gen_hosts(subnet.0, subnet.1);
-        let mut table: Vec<(Ipv4Addr, Vec<String>)> = Vec::new();
-        for host in hosts {
-            
-            println!("host: {}", host);
-            if let Ok(_) = ping::ping(host) {
-                let query_result = query::query_user(host);
-                match query_result {
-                    Some(users) => {
-                        table.push((host, users.clone()));
-                    }
-
-                    None => {
-                        table.push((host, vec!["Unknown".to_string()]));
-                    }
-                }
+        let tx_clone = tx.clone();
+        std::thread::spawn(move || {
+            //println!("Attempting to create thread for subnet {}", subnet);
+            if let Err(_) = tx_clone.send(crate::subnet::query_subnet(subnet)) {
+                println!("Failed to create thread for subnet {}", subnet);
             }
-        }
+        });
 
-        println!("--- table for subnet ---");
-        for value in table {
-            println!("host: {}, users: {:?}", value.0, value.1);
-        }
-    }
-    */
-
-    /*
-
-    let _ = ping(&args[1]);
-    let raw_user = query(&args[1]);
-
-    if raw_user.is_ok() {
-        let response = parse(raw_user.unwrap());
-        for item in response {
-            println!("user: {}", item);
-        }
+        //println!("Subnet: {}", subnet.ip);
+        
+        //for host in result {
+        //    println!("ip: {}, user: {:?}", host.ip, host.users);
+        //}       
     }
 
-    */
+    drop(tx);
+    //println!("Finished creating threads for subnets!");
+
+    for receiver in rx {
+        for host in receiver {
+            println!("host: {}, users: {:?}", host.ip, host.users);
+        }
+    }
 
     /*
     println!(" USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME");
