@@ -34,11 +34,14 @@ fn main() {
     }
 
     drop(tx);
-    //println!("Finished creating threads for subnets!");
+    println!("Finished creating threads for subnets!");
 
     for receiver in rx {
         for host in receiver {
-            println!("host: {}, users: {:?}", host.ip, host.users);
+            //println!("host: {}, users: {:?}", host.ip, host.users);
+            if host.ip.is_broadcast() {
+                println!("BROADCAST!");
+            }
         }
     }
 

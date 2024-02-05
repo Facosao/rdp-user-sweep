@@ -66,10 +66,12 @@ pub fn query_host(ip: Ipv4Addr) -> Option<QueryResult> {
         let query_result = crate::query::query_user(ip);
         match query_result {
             Some(users) => {
+                println!("Host: {}, Users: {:?}", ip, users);
                 return Some(QueryResult{ip, users});
             }
 
             None => {
+                println!("Host: {}, Users: ?", ip);
                 return Some(QueryResult{ip, users: vec!["Unknown".to_string()]});
             }
         }
