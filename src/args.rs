@@ -56,7 +56,5 @@ fn parse_subnet(subnet: &str) -> Result<Subnet, Box<dyn std::error::Error>> {
         return Err("_".into());
     }
 
-    //println!("addr = {}", addr);
-    //println!("mask = {}", mask);
     Ok(Subnet{ip: addr, mask})
 }

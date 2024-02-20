@@ -5,7 +5,6 @@ use std::{
 };
 
 pub fn ping(ip: Ipv4Addr) -> Result<(), ()> {
-    //println!("PING {}", ip);
     let socket = SocketAddrV4::new(ip, 3389); // RDP port number
     let mut attempts = 2;
 
@@ -17,9 +16,8 @@ pub fn ping(ip: Ipv4Addr) -> Result<(), ()> {
             Duration::from_secs(1)
         );
         
-        match stream {
-            Ok(_) => return Ok(()),
-            Err(_) => {},
+        if let Ok(_) = stream {
+            return Ok(());
         }
 
         if attempts == 1 {
